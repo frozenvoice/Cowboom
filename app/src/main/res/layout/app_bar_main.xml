@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    tools:context="d.project.dswebview.MainActivity">
+
+    <android.support.design.widget.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:theme="@style/AppTheme.AppBarOverlay">
+
+        <android.support.v7.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="?attr/colorPrimary"
+            app:popupTheme="@style/AppTheme.PopupOverlay"
+            android:clickable="false" >
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@android:drawable/editbox_dropdown_dark_frame">
+
+                    <EditText
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/etAddr"
+                        android:layout_alignParentLeft="true"
+                        android:singleLine="true"
+                        android:paddingLeft="5dp"
+                        android:layout_marginRight="@dimen/activity_horizontal_margin"
+                        android:background="@android:color/transparent"
+                        android:layout_centerVertical="true"
+                        android:imeOptions="actionGo"
+                        android:layout_toLeftOf="@+id/btnClear"
+                        android:layout_toStartOf="@+id/btnClear" />
+
+                    <ImageButton
+                        android:layout_width="40dp"
+                        android:layout_height="wrap_content"
+                        android:src="@android:drawable/ic_notification_clear_all"
+                        android:id="@+id/btnClear"
+                        android:layout_alignParentTop="true"
+                        android:layout_alignParentRight="true"
+                        android:layout_alignParentEnd="true" />
+                </RelativeLayout>
+            </LinearLayout>
+
+        </android.support.v7.widget.Toolbar>
+
+    </android.support.design.widget.AppBarLayout>
+
+    <include layout="@layout/content_main" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/fab_margin"
+        android:layout_gravity="bottom|end"
+        android:src="@android:drawable/ic_dialog_dialer" />
+
+</android.support.design.widget.CoordinatorLayout>

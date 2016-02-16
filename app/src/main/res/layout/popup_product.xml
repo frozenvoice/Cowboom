@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="@dimen/activity_vertical_margin"
+    android:background="#8d95bb">
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/etContentID"
+        android:layout_marginLeft="@dimen/activity_horizontal_margin"
+        android:layout_marginRight="@dimen/activity_horizontal_margin"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_toLeftOf="@+id/btnSetContentID"
+        android:layout_alignLeft="@+id/btnGetContentID"
+        android:layout_alignStart="@+id/btnGetContentID" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="현재 페이지에서 상품ID 가져오기"
+        android:id="@+id/btnGetContentID"
+        android:layout_marginBottom="@dimen/activity_vertical_margin"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="상품페이지 이동"
+        android:id="@+id/btnGoProductPage"
+        android:layout_above="@+id/btnGetContentID"
+        android:layout_centerHorizontal="true" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="설정"
+        android:layout_marginRight="@dimen/activity_horizontal_margin"
+        android:id="@+id/btnSetContentID"
+        android:layout_alignBottom="@+id/etContentID"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
+
+</RelativeLayout>
