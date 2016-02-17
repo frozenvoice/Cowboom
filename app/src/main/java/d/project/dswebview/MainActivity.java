@@ -2,16 +2,21 @@ package d.project.dswebview;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v7.app.AlertDialog;
+import android.text.InputType;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -159,9 +164,9 @@ public class MainActivity extends AppCompatActivity
 
                 step = STEP_INIT;
                 if(statusRunning) {
-                    stopRunning(fab);
+                    stopRunning(fab, true);
                 } else {
-                    startRunning(fab);
+                    startRunning(fab, true);
                     wv.reload();
                 }
             }
@@ -208,17 +213,18 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onBackPressed() {
         if(statusRunning) {
-            stopRunning(fab);
+            stopRunning(fab, true);
             return;
         }
+
+        wv.stopLoading();
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else if(wv.canGoBack()) {
             step = STEP_INIT;
-            statusRunning = false;
-            runningPosition = 0;
+            stopRunning(fab, false);
             wv.goBack();
         } else if(statusFinish) {
             super.onBackPressed();
@@ -232,19 +238,25 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    private void startRunning(View v) {
+    private void startRunning(View v, boolean showMsg) {
         statusRunning = true;
         runningPosition = 0;
         list = new ArrayList<>();
-        Snackbar.make(v, "작업시작", Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show();
+        fab.setImageResource(android.R.drawable.ic_media_pause);
+        if(showMsg) {
+            Snackbar.make(v, "작업시작", Snackbar.LENGTH_LONG)
+                    .setAction("Action", null).show();
+        }
     }
 
-    private void stopRunning(View v) {
+    private void stopRunning(View v, boolean showMsg) {
         statusRunning = false;
         runningPosition = 0;
-        Snackbar.make(v, "작업중지", Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show();
+        fab.setImageResource(android.R.drawable.ic_media_play);
+        if(showMsg) {
+            Snackbar.make(v, "작업중지", Snackbar.LENGTH_LONG)
+                    .setAction("Action", null).show();
+        }
     }
 
     @Override
@@ -263,12 +275,12 @@ public class MainActivity extends AppCompatActivity
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_home) {
-            statusRunning = false;
-            runningPosition = 0;
+            stopRunning(fab, false);
             step = STEP_INIT;
             wv.loadUrl(ADDR_HOME);
             return true;
         } else if (id == R.id.action_finish) {
+            statusRunning = false;
             finish();
             return true;
         }
@@ -282,18 +294,59 @@ public class MainActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_product) {
-            // 상품코드설정
+        if (id == R.id.nav_product) {   // 상품코드설정
             startActivityForResult(new Intent(MainActivity.this, Product.class), GO_PRODUCT_PAGE);
-        } else if (id == R.id.nav_requestkey) {
-            // 요청키설정
-            startActivityForResult(new Intent(MainActivity.this, RequestKey.class), GO_PRODUCT_LIST_PAGE);
-        } else if (id == R.id.nav_price) {
-            startActivity(new Intent(MainActivity.this, Price.class));
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
-
+        } else if (id == R.id.nav_product_list) { // 상품목록이동
+            goProductList();
+        } else if (id == R.id.nav_price) {  // 금액설정
+            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+            LayoutInflater inflater = MainActivity.this.getLayoutInflater();
+            View dialogEdit = inflater.inflate(R.layout.dialog_edit, null);
+            final EditText etPrice = (EditText)dialogEdit.findViewById(R.id.etTemp);
+            etPrice.setText(getPrice());
+//            etPrice.setInputType(InputType.TYPE_NUMBER_FLAG_DECIMAL);
+            etPrice.setInputType(InputType.TYPE_CLASS_NUMBER);
+            etPrice.setEms(10);
+            builder.setView(dialogEdit)
+                    .setTitle("금액을 입력하세요.")
+                    .setPositiveButton("확인", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            setPrice(etPrice.getText().toString());
+                            Toast.makeText(MainActivity.this, "금액이 설정되었습니다.", Toast.LENGTH_SHORT).show();
+                        }
+                    })
+                    .setNegativeButton("취소", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.cancel();
+                        }
+                    });
+            builder.create().show();
+        } else if (id == R.id.nav_email) {  // 이메일설정
+            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+            LayoutInflater inflater = MainActivity.this.getLayoutInflater();
+            View dialogEdit = inflater.inflate(R.layout.dialog_edit, null);
+            final EditText etEmail = (EditText)dialogEdit.findViewById(R.id.etTemp);
+            etEmail.setText(getEmail());
+            etEmail.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
+            etEmail.setEms(50);
+            builder.setView(dialogEdit)
+                    .setTitle("E-MAIL 을 입력하세요.")
+                    .setPositiveButton("확인", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            setEmail(etEmail.getText().toString());
+                            Toast.makeText(MainActivity.this, "E-MAIL이 설정되었습니다.", Toast.LENGTH_SHORT).show();
+                        }
+                    })
+                    .setNegativeButton("취소", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.cancel();
+                        }
+                    });
+            builder.create().show();
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -338,6 +391,7 @@ public class MainActivity extends AppCompatActivity
                     break;
                 case STEP_CART:
                     wv.loadUrl(cowboomVo.getMoveAddr());
+                    sendEmail();
                     break;
                 case STEP_RUNNING:
 
@@ -347,7 +401,7 @@ public class MainActivity extends AppCompatActivity
                         wv.reload();
                         break;
                     } else if(runningPosition >= list.size()) {
-                        stopRunning(fab);
+                        stopRunning(fab, true);
                         break;
                     }
 
@@ -376,17 +430,21 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if(requestCode == GO_PRODUCT_PAGE && resultCode == RESULT_OK) {
-
-            wv.loadUrl("http://www.cowboom.com/product/" + getProduct());
-        } if(requestCode == GO_PRODUCT_LIST_PAGE && resultCode == RESULT_OK) {
-
-            String moveAddr = ADDR_REQ.replace("$contentID", getProduct());
-            moveAddr = moveAddr.replace("$requestKey", getRequestKey());
-            Log.d("frozenvoice", "list page moveAddr!  = " + moveAddr);
-            step = STEP_READY;
-            wv.loadUrl(moveAddr);
+        if(requestCode == GO_PRODUCT_PAGE) {
+            if(resultCode == RESULT_OK) {
+                wv.loadUrl("http://www.cowboom.com/product/" + getProduct());
+            } else if(resultCode == RESULT_FIRST_USER) {
+//                goProductList();
+            }
         }
+    }
+
+    private void goProductList() {
+        String moveAddr = ADDR_REQ.replace("$contentID", getProduct());
+        moveAddr = moveAddr.replace("$requestKey", getRequestKey());
+        Log.d("frozenvoice", "list page moveAddr!  = " + moveAddr);
+        step = STEP_READY;
+        wv.loadUrl(moveAddr);
     }
 
     private String getProduct() {
@@ -459,6 +517,20 @@ public class MainActivity extends AppCompatActivity
         editor.commit();
     }
 
+    private String getEmail() {
+        SharedPreferences preferences = getSharedPreferences("cowboom", 0);
+        return preferences.getString("email", "");
+    }
+
+    private void setEmail(String email) {
+
+        SharedPreferences preferences = getSharedPreferences("cowboom", 0);
+        SharedPreferences.Editor editor = preferences.edit();
+
+        editor.putString("email", email);
+        editor.commit();
+    }
+
     private String getHtml() {
         SharedPreferences preferences = getSharedPreferences("cowboom", 0);
         return preferences.getString("html", "");
@@ -508,6 +580,33 @@ public class MainActivity extends AppCompatActivity
                 list.add(map);
                 map = new HashMap<>();
             }
+        }
+    }
+
+    private class SendEmailTask extends AsyncTask<String, Void, Void> {
+        @Override
+        protected Void doInBackground(String... params) {
+            try {
+                Log.d("frozenvoice", "params .. " + params[0] + "," + params[1] + "," + params[2]);
+                MailSender sender = new MailSender("frozenvoice83@gmail.com", "tjfgml0903"); // SUBSTITUTE ID PASSWORD
+                sender.setFrom("frozenvoice83@gmail.com");
+                sender.setTo(new String[]{params[0]});
+                sender.setSubject(params[1]);
+                sender.setBody(params[2]);
+                sender.send();
+
+            } catch (Exception e) {
+                Log.e("frozenvoice", "send email error " + e.getMessage());
+            }
+            return null;
+        }
+    }
+
+    private void sendEmail() {
+        if(getEmail() != null && !getEmail().isEmpty()) {
+            new SendEmailTask().execute(getEmail(),
+                    "상품이 카트에 담겼습니다.",
+                    "상품 : " + getProduct() + "\n주소 : " + cowboomVo.getMoveAddr());
         }
     }
 }

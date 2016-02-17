@@ -38,7 +38,7 @@
                         android:layout_alignParentLeft="true"
                         android:singleLine="true"
                         android:paddingLeft="5dp"
-                        android:layout_marginRight="@dimen/activity_horizontal_margin"
+                        android:layout_marginRight="5dp"
                         android:background="@android:color/transparent"
                         android:layout_centerVertical="true"
                         android:imeOptions="actionGo"
@@ -46,9 +46,10 @@
                         android:layout_toStartOf="@+id/btnClear" />
 
                     <ImageButton
-                        android:layout_width="40dp"
-                        android:layout_height="wrap_content"
-                        android:src="@android:drawable/ic_notification_clear_all"
+                        android:layout_width="30dp"
+                        android:layout_height="match_parent"
+                        android:src="@android:drawable/presence_offline"
+                        android:background="@android:color/transparent"
                         android:id="@+id/btnClear"
                         android:layout_alignParentTop="true"
                         android:layout_alignParentRight="true"
@@ -68,6 +69,6 @@
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/fab_margin"
         android:layout_gravity="bottom|end"
-        android:src="@android:drawable/ic_dialog_dialer" />
+        android:src="@android:drawable/ic_media_play" />
 
 </android.support.design.widget.CoordinatorLayout>

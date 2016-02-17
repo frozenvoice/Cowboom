@@ -45,7 +45,9 @@ public class Product extends Activity {
                     Toast.makeText(Product.this, "상품ID가 올바르지 않습니다.", Toast.LENGTH_SHORT).show();
                 } else {
                     setProduct(contentID);
-                    Toast.makeText(Product.this, "상품ID 설정됨", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(Product.this, "상품ID가 설정되었습니다.", Toast.LENGTH_SHORT).show();
+//                    setResult(RESULT_FIRST_USER);
+//                    finish();
                 }
             }
         });

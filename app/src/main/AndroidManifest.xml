@@ -20,11 +20,7 @@
         </activity>
 
         <activity android:name=".Product"
-            android:theme="@style/AppTheme.CustomTheme"></activity>
-        <activity android:name=".RequestKey"
-            android:theme="@style/AppTheme.CustomTheme"></activity>
-        <activity android:name=".Price"
-            android:theme="@style/AppTheme.CustomTheme"></activity>
+            android:theme="@style/AppTheme.Transparent"/>
     </application>
     <uses-permission android:name="android.permission.INTERNET" />
 </manifest>
