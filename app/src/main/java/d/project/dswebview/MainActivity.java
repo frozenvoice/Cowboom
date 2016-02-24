@@ -1,6 +1,5 @@
 package d.project.dswebview;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -11,32 +10,29 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.text.InputType;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
-import android.view.View;
-import android.support.design.widget.NavigationView;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.Window;
+import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -64,7 +60,6 @@ public class MainActivity extends AppCompatActivity
     private final int STEP_LIST = 2;
     private final int STEP_CART = 3;
     private final int STEP_RUNNING = 6;
-    private final int STEP_END = 9;
 
     private int step = STEP_INIT;
 
@@ -74,8 +69,7 @@ public class MainActivity extends AppCompatActivity
     private boolean statusRunning = false;
     private boolean statusFinish = false;
     private int runningPosition = 0;
-
-    private String contentID = "";
+    private int addCnt = 0;
 
     private CowboomVo cowboomVo = new CowboomVo();
     private List<Map<String, String>> list = new ArrayList<>();
@@ -147,13 +141,12 @@ public class MainActivity extends AppCompatActivity
                 progressBar.setVisibility(View.INVISIBLE);
                 etAddr.setText(url);
 
-//                String temp = wv.getSettings().getUserAgentString();
-//                Log.d("frozenvoice", "agent : " + temp);
                 view.loadUrl("javascript:window.Android.getHtml(document.getElementsByTagName('html')[0].innerHTML);"); //<html></html> 사이에 있는 모든 html을 넘겨준다.
             }
         });
 
         wv.loadUrl(ADDR_HOME);
+//        wv.loadUrl("javascript:window.HTMLOUT.showHTML('<html>'+document.getElementsByTagName('html')[0].innerHTML+'</html>');");
     }
 
     private void initWidget() {
@@ -241,6 +234,7 @@ public class MainActivity extends AppCompatActivity
     private void startRunning(View v, boolean showMsg) {
         statusRunning = true;
         runningPosition = 0;
+        addCnt = 0;
         list = new ArrayList<>();
         fab.setImageResource(android.R.drawable.ic_media_pause);
         if(showMsg) {
@@ -252,6 +246,7 @@ public class MainActivity extends AppCompatActivity
     private void stopRunning(View v, boolean showMsg) {
         statusRunning = false;
         runningPosition = 0;
+        addCnt = 0;
         fab.setImageResource(android.R.drawable.ic_media_play);
         if(showMsg) {
             Snackbar.make(v, "작업중지", Snackbar.LENGTH_LONG)
@@ -392,10 +387,11 @@ public class MainActivity extends AppCompatActivity
                 case STEP_CART:
                     wv.loadUrl(cowboomVo.getMoveAddr());
                     sendEmail();
+                    addCnt++;
                     break;
                 case STEP_RUNNING:
 
-                    if(list.size() == 0) {
+                    if(list.size() == 0 || addCnt == 0) {
 
                         // 현재 페이지에 상품이 없을 경우 반복
                         wv.reload();

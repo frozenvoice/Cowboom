@@ -4,15 +4,30 @@ import android.app.Activity;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.Toast;
+
+import java.util.List;
+
+import d.project.dswebview.db.ContentVO;
+import d.project.dswebview.db.DBManager;
+import d.project.dswebview.widget.SwipeDismissListViewTouchListener;
 
 /**
  * Created by JeongKuk on 2016-02-14.
  */
 public class Product extends Activity {
+
+    private EditText etContentID;
+    private EditText etDesc;
+    private ListView lvProduct;
+    private ContentAdapter mAdapter;
+    private DBManager dbManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,14 +41,23 @@ public class Product extends Activity {
         int width = dm.widthPixels;
         int height = dm.heightPixels;
 
-        getWindow().setLayout((int)(width*.8), (int)(height*.5));
+        getWindow().setLayout((int)(width*.9), (int)(height*.9));
+
+        dbManager = new DBManager(getApplicationContext(), "content.db", null, 1);
 
         initWidget();
+        initList();
+    }
+
+    private List<ContentVO> selectContentList() {
+        List<ContentVO> list = dbManager.selectList();
+        return list;
     }
 
     private void initWidget() {
 
-        final EditText etContentID = (EditText) findViewById(R.id.etContentID);
+        etContentID = (EditText) findViewById(R.id.etContentID);
+        etDesc = (EditText) findViewById(R.id.etDesc);
         etContentID.setText(getProduct());
 
         Button btnSetContentID = (Button) findViewById(R.id.btnSetContentID);
@@ -44,7 +68,7 @@ public class Product extends Activity {
                 if(contentID == null || contentID.isEmpty() || contentID.length() != 7) {
                     Toast.makeText(Product.this, "상품ID가 올바르지 않습니다.", Toast.LENGTH_SHORT).show();
                 } else {
-                    setProduct(contentID);
+                    setProduct(contentID, etDesc.getText().toString());
                     Toast.makeText(Product.this, "상품ID가 설정되었습니다.", Toast.LENGTH_SHORT).show();
 //                    setResult(RESULT_FIRST_USER);
 //                    finish();
@@ -81,9 +105,64 @@ public class Product extends Activity {
 
                     String contentID = html.substring(pos+10, pos+17);
                     etContentID.setText(contentID);
+
+                    pos = html.indexOf("title=");
+                    if(pos == -1) return;
+
+                    String title = "";
+                    try {
+                        title = html.substring(pos+6, html.indexOf("&ProductType"));
+                        etDesc.setText(title);
+
+                    } catch (Exception e) {
+                        Log.e("frozenvoice", e.getMessage());
+                    }
                 }
             }
         });
+    }
+
+    private void initList() {
+        lvProduct = (ListView) findViewById(R.id.lvProduct);
+
+        List<ContentVO> list = selectContentList();
+        for(ContentVO vo : list) {
+            if(vo.getContentId().equals(etContentID.getText().toString())) {
+                etDesc.setText(vo.getDesc());
+            }
+        }
+        //새로운 ArrayAdapter를 생성한다.
+        mAdapter = new ContentAdapter(this, R.layout.content_item, list);
+        lvProduct.setAdapter(mAdapter);
+
+        lvProduct.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                etContentID.setText(mAdapter.getItem(position).getContentId());
+                etDesc.setText(mAdapter.getItem(position).getDesc());
+            }
+        });
+
+        SwipeDismissListViewTouchListener touchListener =
+                new SwipeDismissListViewTouchListener(
+                        lvProduct,
+                        new SwipeDismissListViewTouchListener.DismissCallbacks() {
+                            @Override
+                            public boolean canDismiss(int position) {
+                                return true;
+                            }
+
+                            @Override
+                            public void onDismiss(ListView listView, int[] reverseSortedPositions) {
+                                for (int position : reverseSortedPositions) {
+                                    dbManager.delete(mAdapter.getItem(position).getContentId());
+                                }
+                                mAdapter = new ContentAdapter(Product.this, R.layout.content_item, selectContentList());
+                                lvProduct.setAdapter(mAdapter);
+                            }
+                        });
+        lvProduct.setOnTouchListener(touchListener);
+        lvProduct.setOnScrollListener(touchListener.makeScrollListener());
     }
 
     private String getProduct() {
@@ -91,13 +170,31 @@ public class Product extends Activity {
         return preferences.getString("contentID", "");
     }
 
-    private void setProduct(String contentID) {
+    private void setProduct(String contentID, String desc) {
 
         SharedPreferences preferences = getSharedPreferences("cowboom", 0);
         SharedPreferences.Editor editor = preferences.edit();
 
         editor.putString("contentID", contentID);
         editor.commit();
+
+        List<ContentVO> list = selectContentList();
+
+        boolean hasValue = false;
+        for(ContentVO vo : list) {
+            if(contentID.equals(vo.getContentId())) {
+                dbManager.update(contentID, desc);
+                hasValue = true;
+                break;
+            }
+        }
+
+        if(!hasValue) {
+            dbManager.insert(contentID, desc);
+        }
+
+        mAdapter = new ContentAdapter(Product.this, R.layout.content_item, selectContentList());
+        lvProduct.setAdapter(mAdapter);
     }
 
     private String getHtml() {
