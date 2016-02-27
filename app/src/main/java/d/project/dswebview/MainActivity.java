@@ -391,7 +391,7 @@ public class MainActivity extends AppCompatActivity
                     break;
                 case STEP_RUNNING:
 
-                    if(list.size() == 0 && addCnt == 0) {
+                    if( (list.size() == 0) || (list.size() > 0 && addCnt == 0)) {
 
                         // 현재 페이지에 상품이 없을 경우 반복
                         wv.reload();
